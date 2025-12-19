@@ -77,24 +77,30 @@
       <div class="tab-content active" id="tab-vendas">
         <div class="form-section">
           <h2>Registrar Venda</h2>
-          <form id="form-venda">
+
+          <!-- Botões de Tipo -->
+          <div class="tipo-buttons">
+            <button type="button" class="btn-tipo" data-tipo="lanche">
+              🍔 Lanches
+            </button>
+            <button type="button" class="btn-tipo" data-tipo="bebida">
+              🥤 Bebidas
+            </button>
+          </div>
+
+          <!-- Grid de Produtos -->
+          <div id="produtos-grid" class="produtos-grid">
+            <div class="empty-state">Selecione Lanches ou Bebidas acima</div>
+          </div>
+
+          <!-- Formulário de Quantidade -->
+          <form id="form-venda" style="display: none">
+            <div class="venda-selecionada">
+              <h3 id="produto-selecionado-nome"></h3>
+              <p id="produto-selecionado-preco"></p>
+            </div>
+
             <div class="form-row">
-              <div class="form-group">
-                <label for="tipo-venda">Tipo</label>
-                <select id="tipo-venda" required>
-                  <option value="">Selecione...</option>
-                  <option value="lanche">Lanche</option>
-                  <option value="bebida">Bebida</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label for="item-venda">Item</label>
-                <select id="item-venda" required disabled>
-                  <option value="">Selecione o tipo primeiro...</option>
-                </select>
-              </div>
-
               <div class="form-group">
                 <label for="quantidade-venda">Quantidade</label>
                 <input
@@ -104,11 +110,6 @@
                   value="1"
                   required
                 />
-              </div>
-
-              <div class="form-group">
-                <label for="valor-unitario-venda">Valor Unitário</label>
-                <input type="text" id="valor-unitario-venda" readonly />
               </div>
 
               <div class="form-group">
@@ -122,9 +123,18 @@
               </div>
             </div>
 
-            <button type="submit" class="btn btn-primary">
-              ✅ Registrar Venda
-            </button>
+            <div class="form-buttons">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="cancelarVenda()"
+              >
+                ❌ Cancelar
+              </button>
+              <button type="submit" class="btn btn-primary">
+                ✅ Registrar Venda
+              </button>
+            </div>
           </form>
         </div>
 

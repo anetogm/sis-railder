@@ -175,6 +175,109 @@ body {
   color: var(--primary-color);
 }
 
+/* BOTÕES DE TIPO (LANCHES/BEBIDAS) */
+.tipo-buttons {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.btn-tipo {
+  flex: 1;
+  min-width: 200px;
+  padding: 20px;
+  border: 3px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--card-bg);
+  font-size: 1.3em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-color);
+}
+
+.btn-tipo:hover {
+  border-color: var(--primary-color);
+  background: var(--bg-color);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+}
+
+.btn-tipo.active {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+  color: white;
+  box-shadow: var(--shadow-lg);
+}
+
+/* GRID DE PRODUTOS */
+.produtos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+  min-height: 200px;
+}
+
+.produto-card {
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.produto-card:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-5px);
+  box-shadow: var(--shadow);
+}
+
+.produto-card.selected {
+  border-color: var(--success-color);
+  background: var(--success-color);
+  color: white;
+}
+
+.produto-card h4 {
+  font-size: 1.1em;
+  margin-bottom: 10px;
+  color: inherit;
+}
+
+.produto-card .preco {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.produto-card.selected .preco {
+  color: white;
+}
+
+/* VENDA SELECIONADA */
+.venda-selecionada {
+  background: linear-gradient(135deg, var(--success-color), #059669);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.venda-selecionada h3 {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+.venda-selecionada p {
+  font-size: 1.8em;
+  font-weight: bold;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -261,6 +364,13 @@ body {
 
 .btn-danger:hover {
   background: #dc2626;
+}
+
+.form-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin-top: 20px;
 }
 
 /* LISTAS */

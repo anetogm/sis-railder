@@ -76,18 +76,13 @@ CREATE DATABASE lanchonete_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 ### 6. Configurar variáveis de ambiente
 
-Copie o arquivo `.env.example` para `.env` e configure suas credenciais:
-
-```bash
-cp .env.example .env
-```
-
 Edite o arquivo `.env` com suas credenciais do MySQL:
 
 ```
-DATABASE_URL=mysql+pymysql://seu_usuario:sua_senha@localhost/lanchonete_db
-FLASK_ENV=development
+DATABASE_URL=mysql+pymysql://root:sua_senha@localhost/lanchonete_db
 ```
+
+> **📖 Precisa de ajuda com o banco de dados?** Veja o guia completo em [BANCO_DE_DADOS.md](BANCO_DE_DADOS.md)
 
 ### 7. Iniciar o sistema
 

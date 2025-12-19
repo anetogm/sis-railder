@@ -1,9 +1,10 @@
 // Configuração da API
-const API_URL = "http://localhost:5000/api";
+const API_URL = "/api";
 
 // Estado da aplicação
 let cardapio = { lanches: {}, bebidas: {} };
 let categoriasDespesa = [];
+let produtoSelecionado = null;
 
 // ==================== INICIALIZAÇÃO ====================
 
@@ -27,6 +28,14 @@ function configurarEventListeners() {
     button.addEventListener("click", () => trocarTab(button.dataset.tab));
   });
 
+  // Botões de tipo (Lanches/Bebidas)
+  document.querySelectorAll(".btn-tipo").forEach((button) => {
+    button.addEventListener("click", () => {
+      const tipo = button.dataset.tipo;
+      selecionarTipo(tipo);
+    });
+  });
+
   // Forms
   document
     .getElementById("form-venda")
@@ -35,16 +44,10 @@ function configurarEventListeners() {
     .getElementById("form-despesa")
     .addEventListener("submit", registrarDespesa);
 
-  // Campos de venda
-  document
-    .getElementById("tipo-venda")
-    .addEventListener("change", atualizarItensVenda);
-  document
-    .getElementById("item-venda")
-    .addEventListener("change", atualizarValoresVenda);
+  // Quantidade de venda
   document
     .getElementById("quantidade-venda")
-    .addEventListener("input", atualizarValoresVenda);
+    .addEventListener("input", atualizarValorTotal);
 
   // Data do relatório
   const dataRelatorio = document.getElementById("data-relatorio");
@@ -127,6 +130,7 @@ async function carregarCardapio() {
   try {
     const response = await fetch(`${API_URL}/cardapio`);
     cardapio = await response.json();
+    console.log("Cardápio carregado:", cardapio);
   } catch (error) {
     console.error("Erro ao carregar cardápio:", error);
     mostrarToast("Erro ao carregar cardápio", "error");
@@ -150,57 +154,85 @@ async function carregarCategoriasDespesa() {
   }
 }
 
-function atualizarItensVenda() {
-  const tipo = document.getElementById("tipo-venda").value;
-  const selectItem = document.getElementById("item-venda");
+// ==================== SELEÇÃO DE PRODUTOS ====================
 
-  selectItem.innerHTML = '<option value="">Selecione...</option>';
-  selectItem.disabled = false;
+function selecionarTipo(tipo) {
+  // Atualizar botões
+  document.querySelectorAll(".btn-tipo").forEach((btn) => {
+    btn.classList.remove("active");
+  });
+  document.querySelector(`[data-tipo="${tipo}"]`).classList.add("active");
 
-  if (tipo === "lanche") {
-    Object.keys(cardapio.lanches).forEach((item) => {
-      const option = document.createElement("option");
-      option.value = item;
-      option.textContent = `${item} - R$ ${formatarMoeda(
-        cardapio.lanches[item]
-      )}`;
-      selectItem.appendChild(option);
-    });
-  } else if (tipo === "bebida") {
-    Object.keys(cardapio.bebidas).forEach((item) => {
-      const option = document.createElement("option");
-      option.value = item;
-      option.textContent = `${item} - R$ ${formatarMoeda(
-        cardapio.bebidas[item]
-      )}`;
-      selectItem.appendChild(option);
-    });
-  }
-
-  // Limpar valores
-  document.getElementById("valor-unitario-venda").value = "";
-  document.getElementById("valor-total-venda").value = "";
+  // Mostrar produtos
+  mostrarProdutos(tipo);
 }
 
-function atualizarValoresVenda() {
-  const tipo = document.getElementById("tipo-venda").value;
-  const item = document.getElementById("item-venda").value;
+function mostrarProdutos(tipo) {
+  const grid = document.getElementById("produtos-grid");
+  grid.innerHTML = "";
+
+  const produtos = tipo === "lanche" ? cardapio.lanches : cardapio.bebidas;
+
+  Object.entries(produtos).forEach(([nome, preco]) => {
+    const card = document.createElement("div");
+    card.className = "produto-card";
+    card.innerHTML = `
+      <h4>${nome}</h4>
+      <div class="preco">R$ ${formatarMoeda(preco)}</div>
+    `;
+
+    card.addEventListener("click", () => {
+      selecionarProduto(tipo, nome, preco, card);
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+function selecionarProduto(tipo, nome, preco, cardElement) {
+  produtoSelecionado = { tipo, nome, preco };
+
+  // Destacar card selecionado
+  document.querySelectorAll(".produto-card").forEach((card) => {
+    card.classList.remove("selected");
+  });
+  cardElement.classList.add("selected");
+
+  // Mostrar formulário
+  document.getElementById("form-venda").style.display = "block";
+  document.getElementById("produto-selecionado-nome").textContent = nome;
+  document.getElementById(
+    "produto-selecionado-preco"
+  ).textContent = `R$ ${formatarMoeda(preco)} cada`;
+
+  // Resetar quantidade
+  document.getElementById("quantidade-venda").value = 1;
+  atualizarValorTotal();
+
+  // Scroll suave para o formulário
+  document
+    .getElementById("form-venda")
+    .scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function atualizarValorTotal() {
+  if (!produtoSelecionado) return;
+
   const quantidade =
     parseInt(document.getElementById("quantidade-venda").value) || 0;
+  const total = produtoSelecionado.preco * quantidade;
 
-  if (tipo && item && quantidade > 0) {
-    const precoUnitario =
-      tipo === "lanche" ? cardapio.lanches[item] : cardapio.bebidas[item];
+  document.getElementById("valor-total-venda").value = `R$ ${formatarMoeda(
+    total
+  )}`;
+}
 
-    const total = precoUnitario * quantidade;
-
-    document.getElementById("valor-unitario-venda").value = `R$ ${formatarMoeda(
-      precoUnitario
-    )}`;
-    document.getElementById("valor-total-venda").value = `R$ ${formatarMoeda(
-      total
-    )}`;
-  }
+function cancelarVenda() {
+  produtoSelecionado = null;
+  document.getElementById("form-venda").style.display = "none";
+  document.querySelectorAll(".produto-card").forEach((card) => {
+    card.classList.remove("selected");
+  });
 }
 
 // ==================== VENDAS ====================
@@ -208,26 +240,25 @@ function atualizarValoresVenda() {
 async function registrarVenda(e) {
   e.preventDefault();
 
-  const tipo = document.getElementById("tipo-venda").value;
-  const item = document.getElementById("item-venda").value;
+  if (!produtoSelecionado) {
+    mostrarToast("Selecione um produto primeiro", "error");
+    return;
+  }
+
   const quantidade = parseInt(
     document.getElementById("quantidade-venda").value
   );
-
-  const valorUnitario =
-    tipo === "lanche" ? cardapio.lanches[item] : cardapio.bebidas[item];
-
-  const valorTotal = valorUnitario * quantidade;
+  const valorTotal = produtoSelecionado.preco * quantidade;
 
   try {
     const response = await fetch(`${API_URL}/vendas`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        tipo,
-        item,
-        quantidade,
-        valor_unitario: valorUnitario,
+        tipo: produtoSelecionado.tipo,
+        item: produtoSelecionado.nome,
+        quantidade: quantidade,
+        valor_unitario: produtoSelecionado.preco,
         valor_total: valorTotal,
         data: obterDataHoje(),
       }),
@@ -235,10 +266,7 @@ async function registrarVenda(e) {
 
     if (response.ok) {
       mostrarToast("Venda registrada com sucesso! ✅");
-      document.getElementById("form-venda").reset();
-      document.getElementById("item-venda").disabled = true;
-      document.getElementById("valor-unitario-venda").value = "";
-      document.getElementById("valor-total-venda").value = "";
+      cancelarVenda();
 
       await atualizarDashboard();
       await carregarVendasRecentes();

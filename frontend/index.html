@@ -11,7 +11,7 @@
       <!-- HEADER -->
       <header class="header">
         <div class="header-content">
-          <h1>🍔 Sistema de Gerenciamento - Lanchonete</h1>
+          <h1>Sistema de Gerenciamento - Lanchonete</h1>
           <div class="header-info">
             <span id="data-atual"></span>
           </div>
@@ -22,7 +22,7 @@
       <section class="dashboard">
         <div class="card card-vendas">
           <div class="card-header">
-            <h3>💰 Vendas do Dia</h3>
+            <h3>Vendas do Dia</h3>
           </div>
           <div class="card-body">
             <div class="valor-grande">
@@ -36,7 +36,7 @@
 
         <div class="card card-despesas">
           <div class="card-header">
-            <h3>💸 Despesas do Dia</h3>
+            <h3>Despesas do Dia</h3>
           </div>
           <div class="card-body">
             <div class="valor-grande">
@@ -50,7 +50,7 @@
 
         <div class="card card-lucro">
           <div class="card-header">
-            <h3>📊 Resultado do Dia</h3>
+            <h3>Resultado do Dia</h3>
           </div>
           <div class="card-body">
             <div class="valor-grande" id="lucro-container">
@@ -64,13 +64,13 @@
       <!-- TABS -->
       <div class="tabs">
         <button class="tab-button active" data-tab="vendas">
-          📦 Registrar Vendas
+          Registrar Vendas
         </button>
         <button class="tab-button" data-tab="despesas">
-          💳 Registrar Despesas
+          Registrar Despesas
         </button>
-        <button class="tab-button" data-tab="historico">📋 Histórico</button>
-        <button class="tab-button" data-tab="relatorios">📊 Relatórios</button>
+        <button class="tab-button" data-tab="historico">Histórico</button>
+        <button class="tab-button" data-tab="relatorios">Relatórios</button>
       </div>
 
       <!-- TAB VENDAS -->
@@ -81,10 +81,10 @@
           <!-- Botões de Tipo -->
           <div class="tipo-buttons">
             <button type="button" class="btn-tipo" data-tipo="lanche">
-              🍔 Lanches
+              Lanches
             </button>
             <button type="button" class="btn-tipo" data-tipo="bebida">
-              🥤 Bebidas
+              Bebidas
             </button>
           </div>
 
@@ -129,10 +129,10 @@
                 class="btn btn-secondary"
                 onclick="cancelarVenda()"
               >
-                ❌ Cancelar
+                Cancelar
               </button>
               <button type="submit" class="btn btn-primary">
-                ✅ Registrar Venda
+                Registrar Venda
               </button>
             </div>
           </form>
@@ -181,7 +181,7 @@
             </div>
 
             <button type="submit" class="btn btn-primary">
-              ✅ Registrar Despesa
+              Registrar Despesa
             </button>
           </form>
         </div>
@@ -206,12 +206,12 @@
         </div>
 
         <div class="historico-section">
-          <h3>📦 Histórico de Vendas</h3>
+          <h3>Histórico de Vendas</h3>
           <div id="historico-vendas"></div>
         </div>
 
         <div class="historico-section">
-          <h3>💳 Histórico de Despesas</h3>
+          <h3>Histórico de Despesas</h3>
           <div id="historico-despesas"></div>
         </div>
       </div>
@@ -222,7 +222,7 @@
           <label for="data-relatorio">Data:</label>
           <input type="date" id="data-relatorio" />
           <button class="btn btn-primary" onclick="gerarRelatorio()">
-            📊 Gerar Relatório
+            Gerar Relatório
           </button>
         </div>
 
@@ -256,12 +256,12 @@
 
           <div class="relatorio-detalhes">
             <div class="relatorio-secao">
-              <h3>🏆 Produtos Mais Vendidos</h3>
+              <h3>Produtos Mais Vendidos</h3>
               <div id="produtos-mais-vendidos"></div>
             </div>
 
             <div class="relatorio-secao">
-              <h3>💰 Despesas por Categoria</h3>
+              <h3>Despesas por Categoria</h3>
               <div id="despesas-por-categoria"></div>
             </div>
           </div>

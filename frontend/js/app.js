@@ -265,7 +265,7 @@ async function registrarVenda(e) {
     });
 
     if (response.ok) {
-      mostrarToast("Venda registrada com sucesso! ✅");
+      mostrarToast("Venda registrada com sucesso!");
       cancelarVenda();
 
       await atualizarDashboard();
@@ -297,14 +297,8 @@ async function carregarVendasRecentes() {
                 <div class="item-info">
                     <strong>${venda.item}</strong>
                     <div class="detalhes">
-                        ${venda.quantidade}x - ${
-          venda.tipo === "lanche" ? "🍔" : "🥤"
-        }
-                        ${
-                          venda.tipo.charAt(0).toUpperCase() +
-                          venda.tipo.slice(1)
-                        } - 
-                        ${formatarDataHora(venda.data_hora)}
+                        ${venda.quantidade}x - ${venda.tipo.charAt(0).toUpperCase() + venda.tipo.slice(1)}
+                        - ${formatarDataHora(venda.data_hora)}
                     </div>
                 </div>
                 <div class="item-valor">R$ ${formatarMoeda(
@@ -312,7 +306,7 @@ async function carregarVendasRecentes() {
                 )}</div>
                 <button class="btn btn-danger" onclick="deletarVenda(${
                   venda.id
-                })">🗑️</button>
+                })">Excluir</button>
             </div>
         `
       )
@@ -363,7 +357,7 @@ async function registrarDespesa(e) {
     });
 
     if (response.ok) {
-      mostrarToast("Despesa registrada com sucesso! ✅");
+      mostrarToast("Despesa registrada com sucesso!");
       document.getElementById("form-despesa").reset();
 
       await atualizarDashboard();
@@ -403,7 +397,7 @@ async function carregarDespesasRecentes() {
                 <div class="item-valor">R$ ${formatarMoeda(despesa.valor)}</div>
                 <button class="btn btn-danger" onclick="deletarDespesa(${
                   despesa.id
-                })">🗑️</button>
+                })">Excluir</button>
             </div>
         `
       )
@@ -503,7 +497,7 @@ async function carregarHistorico(dataFiltro = null) {
                     )}</div>
                     <button class="btn btn-danger" onclick="deletarVenda(${
                       venda.id
-                    })">🗑️</button>
+                    })">Excluir</button>
                 </div>
             `
         )
@@ -541,7 +535,7 @@ async function carregarHistorico(dataFiltro = null) {
                     )}</div>
                     <button class="btn btn-danger" onclick="deletarDespesa(${
                       despesa.id
-                    })">🗑️</button>
+                    })">Excluir</button>
                 </div>
             `
         )
@@ -611,9 +605,7 @@ async function gerarRelatorio() {
                     <div class="produto-info">
                         <strong>${index + 1}. ${produto.item}</strong>
                         <div class="detalhes">
-                            ${produto.quantidade} unidades - ${
-            produto.tipo === "lanche" ? "🍔" : "🥤"
-          }
+                            ${produto.quantidade} unidades - ${produto.tipo.charAt(0).toUpperCase() + produto.tipo.slice(1)}
                         </div>
                     </div>
                     <div class="produto-valor">R$ ${formatarMoeda(

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema de Gerenciamento - Lanchonete</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- HEADER -->
+      <header class="header">
+        <div class="header-content">
+          <h1>🍔 Sistema de Gerenciamento - Lanchonete</h1>
+          <div class="header-info">
+            <span id="data-atual"></span>
+          </div>
+        </div>
+      </header>
+
+      <!-- DASHBOARD -->
+      <section class="dashboard">
+        <div class="card card-vendas">
+          <div class="card-header">
+            <h3>💰 Vendas do Dia</h3>
+          </div>
+          <div class="card-body">
+            <div class="valor-grande">
+              R$ <span id="total-vendas-dia">0,00</span>
+            </div>
+            <div class="card-info">
+              <span id="qtd-vendas-dia">0</span> vendas registradas
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-despesas">
+          <div class="card-header">
+            <h3>💸 Despesas do Dia</h3>
+          </div>
+          <div class="card-body">
+            <div class="valor-grande">
+              R$ <span id="total-despesas-dia">0,00</span>
+            </div>
+            <div class="card-info">
+              <span id="qtd-despesas-dia">0</span> despesas registradas
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-lucro">
+          <div class="card-header">
+            <h3>📊 Resultado do Dia</h3>
+          </div>
+          <div class="card-body">
+            <div class="valor-grande" id="lucro-container">
+              R$ <span id="lucro-dia">0,00</span>
+            </div>
+            <div class="card-info">Lucro/Prejuízo</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab-button active" data-tab="vendas">
+          📦 Registrar Vendas
+        </button>
+        <button class="tab-button" data-tab="despesas">
+          💳 Registrar Despesas
+        </button>
+        <button class="tab-button" data-tab="historico">📋 Histórico</button>
+        <button class="tab-button" data-tab="relatorios">📊 Relatórios</button>
+      </div>
+
+      <!-- TAB VENDAS -->
+      <div class="tab-content active" id="tab-vendas">
+        <div class="form-section">
+          <h2>Registrar Venda</h2>
+          <form id="form-venda">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="tipo-venda">Tipo</label>
+                <select id="tipo-venda" required>
+                  <option value="">Selecione...</option>
+                  <option value="lanche">Lanche</option>
+                  <option value="bebida">Bebida</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="item-venda">Item</label>
+                <select id="item-venda" required disabled>
+                  <option value="">Selecione o tipo primeiro...</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="quantidade-venda">Quantidade</label>
+                <input
+                  type="number"
+                  id="quantidade-venda"
+                  min="1"
+                  value="1"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="valor-unitario-venda">Valor Unitário</label>
+                <input type="text" id="valor-unitario-venda" readonly />
+              </div>
+
+              <div class="form-group">
+                <label for="valor-total-venda">Valor Total</label>
+                <input
+                  type="text"
+                  id="valor-total-venda"
+                  readonly
+                  class="valor-destaque"
+                />
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              ✅ Registrar Venda
+            </button>
+          </form>
+        </div>
+
+        <div class="vendas-recentes">
+          <h3>Vendas Recentes (Hoje)</h3>
+          <div id="lista-vendas-recentes"></div>
+        </div>
+      </div>
+
+      <!-- TAB DESPESAS -->
+      <div class="tab-content" id="tab-despesas">
+        <div class="form-section">
+          <h2>Registrar Despesa</h2>
+          <form id="form-despesa">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="descricao-despesa">Descrição</label>
+                <input
+                  type="text"
+                  id="descricao-despesa"
+                  placeholder="Ex: Compra de ingredientes"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="categoria-despesa">Categoria</label>
+                <select id="categoria-despesa" required>
+                  <option value="">Selecione...</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="valor-despesa">Valor (R$)</label>
+                <input
+                  type="number"
+                  id="valor-despesa"
+                  step="0.01"
+                  min="0.01"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              ✅ Registrar Despesa
+            </button>
+          </form>
+        </div>
+
+        <div class="despesas-recentes">
+          <h3>Despesas Recentes (Hoje)</h3>
+          <div id="lista-despesas-recentes"></div>
+        </div>
+      </div>
+
+      <!-- TAB HISTÓRICO -->
+      <div class="tab-content" id="tab-historico">
+        <div class="filtro-data">
+          <label for="filtro-data-historico">Filtrar por data:</label>
+          <input type="date" id="filtro-data-historico" />
+          <button class="btn btn-secondary" onclick="aplicarFiltroHistorico()">
+            Filtrar
+          </button>
+          <button class="btn btn-secondary" onclick="limparFiltroHistorico()">
+            Mostrar Tudo
+          </button>
+        </div>
+
+        <div class="historico-section">
+          <h3>📦 Histórico de Vendas</h3>
+          <div id="historico-vendas"></div>
+        </div>
+
+        <div class="historico-section">
+          <h3>💳 Histórico de Despesas</h3>
+          <div id="historico-despesas"></div>
+        </div>
+      </div>
+
+      <!-- TAB RELATÓRIOS -->
+      <div class="tab-content" id="tab-relatorios">
+        <div class="filtro-data">
+          <label for="data-relatorio">Data:</label>
+          <input type="date" id="data-relatorio" />
+          <button class="btn btn-primary" onclick="gerarRelatorio()">
+            📊 Gerar Relatório
+          </button>
+        </div>
+
+        <div id="relatorio-resultado" class="relatorio-container">
+          <div class="relatorio-resumo">
+            <h2>Resumo Financeiro</h2>
+            <div class="relatorio-cards">
+              <div class="relatorio-card">
+                <h4>Total em Vendas</h4>
+                <div class="relatorio-valor vendas">
+                  R$ <span id="rel-vendas">0,00</span>
+                </div>
+                <small><span id="rel-qtd-vendas">0</span> vendas</small>
+              </div>
+              <div class="relatorio-card">
+                <h4>Total em Despesas</h4>
+                <div class="relatorio-valor despesas">
+                  R$ <span id="rel-despesas">0,00</span>
+                </div>
+                <small><span id="rel-qtd-despesas">0</span> despesas</small>
+              </div>
+              <div class="relatorio-card">
+                <h4>Resultado</h4>
+                <div class="relatorio-valor lucro" id="rel-lucro-container">
+                  R$ <span id="rel-lucro">0,00</span>
+                </div>
+                <small>Lucro/Prejuízo</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="relatorio-detalhes">
+            <div class="relatorio-secao">
+              <h3>🏆 Produtos Mais Vendidos</h3>
+              <div id="produtos-mais-vendidos"></div>
+            </div>
+
+            <div class="relatorio-secao">
+              <h3>💰 Despesas por Categoria</h3>
+              <div id="despesas-por-categoria"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast"></div>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>

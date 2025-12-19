@@ -5,6 +5,7 @@ const API_URL = "/api";
 let cardapio = { lanches: {}, bebidas: {} };
 let categoriasDespesa = [];
 let produtoSelecionado = null;
+let categoriaSelecionada = null;
 
 // ==================== INICIALIZAÇÃO ====================
 
@@ -141,14 +142,7 @@ async function carregarCategoriasDespesa() {
   try {
     const response = await fetch(`${API_URL}/categorias-despesa`);
     categoriasDespesa = await response.json();
-
-    const select = document.getElementById("categoria-despesa");
-    categoriasDespesa.forEach((cat) => {
-      const option = document.createElement("option");
-      option.value = cat;
-      option.textContent = cat;
-      select.appendChild(option);
-    });
+    mostrarCategorias();
   } catch (error) {
     console.error("Erro ao carregar categorias:", error);
   }
@@ -337,11 +331,64 @@ async function deletarVenda(id) {
 
 // ==================== DESPESAS ====================
 
+function mostrarCategorias() {
+  const grid = document.getElementById("categorias-grid");
+  
+  if (!categoriasDespesa || categoriasDespesa.length === 0) {
+    grid.innerHTML = '<div class="empty-state">Nenhuma categoria disponível</div>';
+    return;
+  }
+
+  grid.innerHTML = categoriasDespesa
+    .map(
+      (categoria) => `
+        <div class="produto-card" onclick="selecionarCategoria('${categoria}')">
+          <h4>${categoria}</h4>
+        </div>
+      `
+    )
+    .join("");
+}
+
+function selecionarCategoria(categoria) {
+  categoriaSelecionada = categoria;
+
+  // Remover seleção anterior
+  document.querySelectorAll("#categorias-grid .produto-card").forEach((card) => {
+    card.classList.remove("selecionado");
+  });
+
+  // Marcar categoria selecionada
+  event.currentTarget.classList.add("selecionado");
+
+  // Mostrar formulário
+  document.getElementById("categoria-selecionada-nome").textContent = categoria;
+  document.getElementById("form-despesa").style.display = "block";
+
+  // Focar no campo de descrição
+  document.getElementById("descricao-despesa").focus();
+}
+
+function cancelarDespesa() {
+  categoriaSelecionada = null;
+  document.getElementById("form-despesa").style.display = "none";
+  document.getElementById("form-despesa").reset();
+
+  // Remover seleção
+  document.querySelectorAll("#categorias-grid .produto-card").forEach((card) => {
+    card.classList.remove("selecionado");
+  });
+}
+
 async function registrarDespesa(e) {
   e.preventDefault();
 
+  if (!categoriaSelecionada) {
+    mostrarToast("Selecione uma categoria", "error");
+    return;
+  }
+
   const descricao = document.getElementById("descricao-despesa").value;
-  const categoria = document.getElementById("categoria-despesa").value;
   const valor = parseFloat(document.getElementById("valor-despesa").value);
 
   try {
@@ -350,7 +397,7 @@ async function registrarDespesa(e) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         descricao,
-        categoria,
+        categoria: categoriaSelecionada,
         valor,
         data: obterDataHoje(),
       }),
@@ -358,7 +405,7 @@ async function registrarDespesa(e) {
 
     if (response.ok) {
       mostrarToast("Despesa registrada com sucesso!");
-      document.getElementById("form-despesa").reset();
+      cancelarDespesa();
 
       await atualizarDashboard();
       await carregarDespesasRecentes();

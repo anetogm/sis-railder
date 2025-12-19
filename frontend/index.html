@@ -148,7 +148,18 @@
       <div class="tab-content" id="tab-despesas">
         <div class="form-section">
           <h2>Registrar Despesa</h2>
-          <form id="form-despesa">
+
+          <!-- Grid de Categorias -->
+          <div id="categorias-grid" class="produtos-grid">
+            <div class="empty-state">Carregando categorias...</div>
+          </div>
+
+          <!-- Formulário de Despesa -->
+          <form id="form-despesa" style="display: none">
+            <div class="venda-selecionada">
+              <h3 id="categoria-selecionada-nome"></h3>
+            </div>
+
             <div class="form-row">
               <div class="form-group">
                 <label for="descricao-despesa">Descrição</label>
@@ -158,13 +169,6 @@
                   placeholder="Ex: Compra de ingredientes"
                   required
                 />
-              </div>
-
-              <div class="form-group">
-                <label for="categoria-despesa">Categoria</label>
-                <select id="categoria-despesa" required>
-                  <option value="">Selecione...</option>
-                </select>
               </div>
 
               <div class="form-group">
@@ -180,9 +184,18 @@
               </div>
             </div>
 
-            <button type="submit" class="btn btn-primary">
-              Registrar Despesa
-            </button>
+            <div class="form-buttons">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="cancelarDespesa()"
+              >
+                Cancelar
+              </button>
+              <button type="submit" class="btn btn-primary">
+                Registrar Despesa
+              </button>
+            </div>
           </form>
         </div>
 

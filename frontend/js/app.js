@@ -7,6 +7,7 @@ let descricoes = { lanches: {}, lanches_gourmet: {} };
 let categoriasDespesa = [];
 let produtoSelecionado = null;
 let categoriaSelecionada = null;
+let carrinho = [];
 
 // ==================== INICIALIZAÇÃO ====================
 
@@ -40,16 +41,8 @@ function configurarEventListeners() {
 
   // Forms
   document
-    .getElementById("form-venda")
-    .addEventListener("submit", registrarVenda);
-  document
     .getElementById("form-despesa")
     .addEventListener("submit", registrarDespesa);
-
-  // Quantidade de venda
-  document
-    .getElementById("quantidade-venda")
-    .addEventListener("input", atualizarValorTotal);
 
   // Datas do relatório - geração automática
   const dataInicio = document.getElementById("data-inicio-relatorio");
@@ -246,11 +239,137 @@ function mostrarProdutos(tipo) {
     }
 
     card.addEventListener("click", () => {
-      selecionarProduto(tipo, nome, preco, card);
+      adicionarAoCarrinho(tipo, nome, preco);
     });
 
     grid.appendChild(card);
   });
+}
+
+function adicionarAoCarrinho(tipo, nome, preco) {
+  // Verificar se o produto já está no carrinho
+  const itemExistente = carrinho.find(
+    (item) => item.nome === nome && item.tipo === tipo
+  );
+
+  if (itemExistente) {
+    itemExistente.quantidade++;
+  } else {
+    carrinho.push({
+      tipo,
+      nome,
+      preco,
+      quantidade: 1,
+    });
+  }
+
+  atualizarCarrinho();
+  mostrarToast(`${nome} adicionado ao carrinho!`, "success");
+}
+
+function atualizarCarrinho() {
+  const container = document.getElementById("carrinho-container");
+  const itensContainer = document.getElementById("carrinho-itens");
+
+  if (carrinho.length === 0) {
+    container.style.display = "none";
+    return;
+  }
+
+  container.style.display = "block";
+
+  let totalGeral = 0;
+
+  itensContainer.innerHTML = carrinho
+    .map((item, index) => {
+      const total = item.preco * item.quantidade;
+      totalGeral += total;
+
+      return `
+      <div class="carrinho-item">
+        <div class="carrinho-item-nome">${item.nome}</div>
+        <div class="carrinho-item-controls">
+          <button class="btn-qty" onclick="alterarQuantidade(${index}, -1)">-</button>
+          <span class="carrinho-item-qty">${item.quantidade}</span>
+          <button class="btn-qty" onclick="alterarQuantidade(${index}, 1)">+</button>
+        </div>
+        <div class="carrinho-item-preco">R$ ${formatarMoeda(total)}</div>
+        <button class="btn-remover" onclick="removerDoCarrinho(${index})">×</button>
+      </div>
+    `;
+    })
+    .join("");
+
+  document.getElementById(
+    "carrinho-valor-total"
+  ).textContent = `R$ ${formatarMoeda(totalGeral)}`;
+}
+
+function alterarQuantidade(index, delta) {
+  carrinho[index].quantidade += delta;
+
+  if (carrinho[index].quantidade <= 0) {
+    carrinho.splice(index, 1);
+  }
+
+  atualizarCarrinho();
+}
+
+function removerDoCarrinho(index) {
+  carrinho.splice(index, 1);
+  atualizarCarrinho();
+  mostrarToast("Item removido do carrinho", "success");
+}
+
+function limparCarrinho() {
+  if (!confirm("Deseja limpar todos os itens do carrinho?")) return;
+
+  carrinho = [];
+  atualizarCarrinho();
+  mostrarToast("Carrinho limpo!", "success");
+}
+
+async function finalizarVenda() {
+  if (carrinho.length === 0) {
+    mostrarToast("Adicione produtos ao carrinho primeiro!", "error");
+    return;
+  }
+
+  try {
+    // Gerar um ID único para este pedido
+    const pedidoId = `PED-${Date.now()}-${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+
+    // Registrar cada item do carrinho com o mesmo pedido_id
+    for (const item of carrinho) {
+      const valorTotal = item.preco * item.quantidade;
+
+      await fetch(`${API_URL}/vendas`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pedido_id: pedidoId,
+          tipo: item.tipo,
+          item: item.nome,
+          quantidade: item.quantidade,
+          valor_unitario: item.preco,
+          valor_total: valorTotal,
+          data: obterDataHoje(),
+        }),
+      });
+    }
+
+    mostrarToast("Venda finalizada com sucesso!", "success");
+    carrinho = [];
+    atualizarCarrinho();
+
+    await atualizarDashboard();
+    await carregarVendasRecentes();
+  } catch (error) {
+    console.error("Erro ao finalizar venda:", error);
+    mostrarToast("Erro ao finalizar venda", "error");
+  }
 }
 
 function selecionarProduto(tipo, nome, preco, cardElement) {
@@ -354,31 +473,103 @@ async function carregarVendasRecentes() {
       return;
     }
 
-    container.innerHTML = vendas
-      .map(
-        (venda) => `
-            <div class="item-lista">
-                <div class="item-info">
-                    <strong>${venda.item}</strong>
-                    <div class="detalhes">
-                        ${venda.quantidade}x - ${formatarTipoProduto(
-          venda.tipo
-        )}
-                        - ${formatarDataHora(venda.data_hora)}
-                    </div>
-                </div>
-                <div class="item-valor">R$ ${formatarMoeda(
-                  venda.valor_total
-                )}</div>
-                <button class="btn btn-danger" onclick="deletarVenda(${
-                  venda.id
-                })">Excluir</button>
-            </div>
+    // Agrupar vendas por pedido_id
+    const pedidos = {};
+    vendas.forEach((venda) => {
+      const pedidoId = venda.pedido_id || `single-${venda.id}`;
+      if (!pedidos[pedidoId]) {
+        pedidos[pedidoId] = {
+          id: pedidoId,
+          itens: [],
+          data_hora: venda.data_hora,
+          total: 0,
+        };
+      }
+      pedidos[pedidoId].itens.push(venda);
+      pedidos[pedidoId].total += parseFloat(venda.valor_total);
+    });
+
+    // Ordenar pedidos por data/hora (mais recente primeiro)
+    const pedidosOrdenados = Object.values(pedidos).sort(
+      (a, b) => new Date(b.data_hora) - new Date(a.data_hora)
+    );
+
+    container.innerHTML = pedidosOrdenados
+      .map((pedido) => {
+        const itensHtml = pedido.itens
+          .map(
+            (venda) => `
+          <div class="pedido-item">
+            <span class="pedido-item-nome">${venda.item}</span>
+            <span class="pedido-item-qty">${venda.quantidade}x</span>
+            <span class="pedido-item-tipo">${formatarTipoProduto(
+              venda.tipo
+            )}</span>
+            <span class="pedido-item-valor">R$ ${formatarMoeda(
+              venda.valor_total
+            )}</span>
+          </div>
         `
-      )
+          )
+          .join("");
+
+        return `
+          <div class="pedido-card">
+            <div class="pedido-header">
+              <div class="pedido-info">
+                <strong>Pedido ${
+                  pedido.itens.length > 1 ? "Combo" : ""
+                }</strong>
+                <div class="detalhes">${formatarDataHora(
+                  pedido.data_hora
+                )}</div>
+              </div>
+              <div class="pedido-acoes">
+                <div class="pedido-total">R$ ${formatarMoeda(
+                  pedido.total
+                )}</div>
+                <button class="btn btn-danger" onclick="deletarPedido('${
+                  pedido.id
+                }')">Excluir</button>
+              </div>
+            </div>
+            <div class="pedido-itens">
+              ${itensHtml}
+            </div>
+          </div>
+        `;
+      })
       .join("");
   } catch (error) {
     console.error("Erro ao carregar vendas:", error);
+  }
+}
+
+async function deletarPedido(pedidoId) {
+  if (!confirm("Deseja realmente excluir este pedido?")) return;
+
+  try {
+    // Buscar todas as vendas do pedido
+    const response = await fetch(`${API_URL}/vendas?data=${obterDataHoje()}`);
+    const vendas = await response.json();
+
+    const vendasDoPedido = vendas.filter(
+      (v) => v.pedido_id === pedidoId || `single-${v.id}` === pedidoId
+    );
+
+    // Deletar cada venda do pedido
+    for (const venda of vendasDoPedido) {
+      await fetch(`${API_URL}/vendas/${venda.id}`, {
+        method: "DELETE",
+      });
+    }
+
+    mostrarToast("Pedido excluído com sucesso!");
+    await atualizarDashboard();
+    await carregarVendasRecentes();
+  } catch (error) {
+    console.error("Erro ao deletar pedido:", error);
+    mostrarToast("Erro ao excluir pedido", "error");
   }
 }
 
@@ -734,55 +925,78 @@ async function gerarRelatorio() {
 
     // Produtos mais vendidos - renderizar todas as categorias em uma seção
     const containerProdutos = document.getElementById("produtos-mais-vendidos");
-    
+
     if (dataInicio === dataFim) {
-      let htmlProdutos = '';
-      
+      let htmlProdutos = "";
+
       // Lanches
-      if (dados.lanches_mais_vendidos && dados.lanches_mais_vendidos.length > 0) {
+      if (
+        dados.lanches_mais_vendidos &&
+        dados.lanches_mais_vendidos.length > 0
+      ) {
         htmlProdutos += '<h4 class="categoria-titulo">🍔 Lanches</h4>';
-        dados.lanches_mais_vendidos.forEach(produto => {
+        dados.lanches_mais_vendidos.forEach((produto) => {
           htmlProdutos += `
             <div class="produto-item">
               <div class="produto-nome">${produto.item}</div>
-              <div class="produto-quantidade">${produto.quantidade} unidades</div>
-              <div class="produto-valor">R$ ${formatarMoeda(produto.total)}</div>
+              <div class="produto-quantidade">${
+                produto.quantidade
+              } unidades</div>
+              <div class="produto-valor">R$ ${formatarMoeda(
+                produto.total
+              )}</div>
             </div>
           `;
         });
       }
-      
+
       // Bebidas
-      if (dados.bebidas_mais_vendidas && dados.bebidas_mais_vendidas.length > 0) {
+      if (
+        dados.bebidas_mais_vendidas &&
+        dados.bebidas_mais_vendidas.length > 0
+      ) {
         htmlProdutos += '<h4 class="categoria-titulo">🥤 Bebidas</h4>';
-        dados.bebidas_mais_vendidas.forEach(produto => {
+        dados.bebidas_mais_vendidas.forEach((produto) => {
           htmlProdutos += `
             <div class="produto-item">
               <div class="produto-nome">${produto.item}</div>
-              <div class="produto-quantidade">${produto.quantidade} unidades</div>
-              <div class="produto-valor">R$ ${formatarMoeda(produto.total)}</div>
+              <div class="produto-quantidade">${
+                produto.quantidade
+              } unidades</div>
+              <div class="produto-valor">R$ ${formatarMoeda(
+                produto.total
+              )}</div>
             </div>
           `;
         });
       }
-      
+
       // Porções
-      if (dados.porcoes_mais_vendidas && dados.porcoes_mais_vendidas.length > 0) {
+      if (
+        dados.porcoes_mais_vendidas &&
+        dados.porcoes_mais_vendidas.length > 0
+      ) {
         htmlProdutos += '<h4 class="categoria-titulo">🍟 Porções</h4>';
-        dados.porcoes_mais_vendidas.forEach(produto => {
+        dados.porcoes_mais_vendidas.forEach((produto) => {
           htmlProdutos += `
             <div class="produto-item">
               <div class="produto-nome">${produto.item}</div>
-              <div class="produto-quantidade">${produto.quantidade} unidades</div>
-              <div class="produto-valor">R$ ${formatarMoeda(produto.total)}</div>
+              <div class="produto-quantidade">${
+                produto.quantidade
+              } unidades</div>
+              <div class="produto-valor">R$ ${formatarMoeda(
+                produto.total
+              )}</div>
             </div>
           `;
         });
       }
-      
-      containerProdutos.innerHTML = htmlProdutos || '<div class="empty-state">Nenhuma venda registrada</div>';
+
+      containerProdutos.innerHTML =
+        htmlProdutos ||
+        '<div class="empty-state">Nenhuma venda registrada</div>';
     } else {
-      containerProdutos.innerHTML = 
+      containerProdutos.innerHTML =
         '<div class="empty-state">Detalhamento disponível apenas para relatórios de um único dia</div>';
     }
 

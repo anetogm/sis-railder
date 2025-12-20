@@ -20,6 +20,7 @@ db = SQLAlchemy(app)
 class Venda(db.Model):
     __tablename__ = 'vendas'
     id = db.Column(db.Integer, primary_key=True)
+    pedido_id = db.Column(db.String(50), nullable=True)  # ID para agrupar itens do mesmo pedido
     tipo = db.Column(db.String(20), nullable=False)  # 'lanche', 'bebida', 'lanche_gourmet' ou 'porcao'
     item = db.Column(db.String(100), nullable=False)
     quantidade = db.Column(db.Integer, nullable=False)
@@ -158,6 +159,7 @@ def criar_venda():
     data = request.json
     
     venda = Venda(
+        pedido_id=data.get('pedido_id'),
         tipo=data['tipo'],
         item=data['item'],
         quantidade=data['quantidade'],
@@ -186,6 +188,7 @@ def listar_vendas():
     
     return jsonify([{
         'id': v.id,
+        'pedido_id': v.pedido_id,
         'tipo': v.tipo,
         'item': v.item,
         'quantidade': v.quantidade,

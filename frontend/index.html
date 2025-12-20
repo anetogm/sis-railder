@@ -96,52 +96,34 @@
 
           <!-- Grid de Produtos -->
           <div id="produtos-grid" class="produtos-grid">
-            <div class="empty-state">Selecione Lanches ou Bebidas acima</div>
+            <div class="empty-state">Selecione uma categoria acima</div>
           </div>
 
-          <!-- Formulário de Quantidade -->
-          <form id="form-venda" style="display: none">
-            <div class="venda-selecionada">
-              <h3 id="produto-selecionado-nome"></h3>
-              <p id="produto-selecionado-preco"></p>
+          <!-- Carrinho de Compras -->
+          <div id="carrinho-container" style="display: none">
+            <h3>🛒 Carrinho</h3>
+            <div id="carrinho-itens"></div>
+            <div class="carrinho-total">
+              <strong>Total:</strong>
+              <span id="carrinho-valor-total">R$ 0,00</span>
             </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="quantidade-venda">Quantidade</label>
-                <input
-                  type="number"
-                  id="quantidade-venda"
-                  min="1"
-                  value="1"
-                  required
-                />
-              </div>
-
-              <div class="form-group">
-                <label for="valor-total-venda">Valor Total</label>
-                <input
-                  type="text"
-                  id="valor-total-venda"
-                  readonly
-                  class="valor-destaque"
-                />
-              </div>
-            </div>
-
             <div class="form-buttons">
               <button
                 type="button"
                 class="btn btn-secondary"
-                onclick="cancelarVenda()"
+                onclick="limparCarrinho()"
               >
-                Cancelar
+                Limpar Carrinho
               </button>
-              <button type="submit" class="btn btn-primary">
-                Registrar Venda
+              <button
+                type="button"
+                class="btn btn-primary"
+                onclick="finalizarVenda()"
+              >
+                Finalizar Venda
               </button>
             </div>
-          </form>
+          </div>
         </div>
 
         <div class="vendas-recentes">

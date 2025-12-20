@@ -3,6 +3,7 @@ const API_URL = "/api";
 
 // Estado da aplicação
 let cardapio = { lanches: {}, lanches_gourmet: {}, porcoes: {}, bebidas: {} };
+let descricoes = { lanches: {}, lanches_gourmet: {} };
 let categoriasDespesa = [];
 let produtoSelecionado = null;
 let categoriaSelecionada = null;
@@ -50,9 +51,19 @@ function configurarEventListeners() {
     .getElementById("quantidade-venda")
     .addEventListener("input", atualizarValorTotal);
 
-  // Data do relatório
-  const dataRelatorio = document.getElementById("data-relatorio");
-  dataRelatorio.value = obterDataHoje();
+  // Datas do relatório - geração automática
+  const dataInicio = document.getElementById("data-inicio-relatorio");
+  const dataFim = document.getElementById("data-fim-relatorio");
+  
+  if (dataInicio) {
+    dataInicio.value = obterDataHoje();
+    dataInicio.addEventListener("change", gerarRelatorio);
+  }
+  
+  if (dataFim) {
+    dataFim.value = obterDataHoje();
+    dataFim.addEventListener("change", gerarRelatorio);
+  }
 }
 
 // ==================== FUNÇÕES AUXILIARES ====================
@@ -140,7 +151,20 @@ function trocarTab(tabName) {
 async function carregarCardapio() {
   try {
     const response = await fetch(`${API_URL}/cardapio`);
-    cardapio = await response.json();
+    const dados = await response.json();
+    
+    cardapio = {
+      lanches: dados.lanches,
+      lanches_gourmet: dados.lanches_gourmet,
+      porcoes: dados.porcoes,
+      bebidas: dados.bebidas
+    };
+    
+    descricoes = {
+      lanches: dados.descricoes_lanches || {},
+      lanches_gourmet: dados.descricoes_lanches_gourmet || {}
+    };
+    
     console.log("Cardápio carregado:", cardapio);
   } catch (error) {
     console.error("Erro ao carregar cardápio:", error);
@@ -196,10 +220,26 @@ function mostrarProdutos(tipo) {
   Object.entries(produtos).forEach(([nome, preco]) => {
     const card = document.createElement("div");
     card.className = "produto-card";
+    
+    // Verificar se há descrição para este produto
+    const temDescricao = (tipo === 'lanche' && descricoes.lanches[nome]) || 
+                         (tipo === 'lanche_gourmet' && descricoes.lanches_gourmet[nome]);
+    
     card.innerHTML = `
+      ${temDescricao ? '<div class="info-icon"></div>' : ''}
       <h4>${nome}</h4>
       <div class="preco">R$ ${formatarMoeda(preco)}</div>
     `;
+
+    // Event listener para o ícone de informações
+    if (temDescricao) {
+      const infoIcon = card.querySelector('.info-icon');
+      infoIcon.addEventListener('click', (e) => {
+        e.stopPropagation(); // Evita selecionar o produto ao clicar no ícone
+        const descricao = tipo === 'lanche' ? descricoes.lanches[nome] : descricoes.lanches_gourmet[nome];
+        mostrarDescricao(nome, descricao);
+      });
+    }
 
     card.addEventListener("click", () => {
       selecionarProduto(tipo, nome, preco, card);
@@ -641,12 +681,26 @@ function limparFiltroHistorico() {
 // ==================== RELATÓRIOS ====================
 
 async function gerarRelatorio() {
-  const data =
-    document.getElementById("data-relatorio").value || obterDataHoje();
+  const dataInicio = document.getElementById("data-inicio-relatorio").value;
+  const dataFim = document.getElementById("data-fim-relatorio").value;
+
+  if (!dataInicio || !dataFim) {
+    return; // Não gera relatório se as datas não estiverem preenchidas
+  }
 
   try {
-    const response = await fetch(`${API_URL}/relatorio/diario?data=${data}`);
-    const dados = await response.json();
+    // Se for o mesmo dia, usa o endpoint diário
+    let response;
+    let dados;
+    
+    if (dataInicio === dataFim) {
+      response = await fetch(`${API_URL}/relatorio/diario?data=${dataInicio}`);
+      dados = await response.json();
+    } else {
+      // Usa o endpoint de período
+      response = await fetch(`${API_URL}/relatorio/periodo?data_inicio=${dataInicio}&data_fim=${dataFim}`);
+      dados = await response.json();
+    }
 
     // Resumo financeiro
     document.getElementById("rel-vendas").textContent = formatarMoeda(
@@ -672,12 +726,9 @@ async function gerarRelatorio() {
       lucroContainer.classList.remove("negativo");
     }
 
-    // Produtos mais vendidos
+    // Produtos mais vendidos (apenas disponível no relatório diário)
     const containerProdutos = document.getElementById("produtos-mais-vendidos");
-    if (dados.produtos_mais_vendidos.length === 0) {
-      containerProdutos.innerHTML =
-        '<div class="empty-state">Nenhuma venda registrada</div>';
-    } else {
+    if (dados.produtos_mais_vendidos && dados.produtos_mais_vendidos.length > 0) {
       containerProdutos.innerHTML = dados.produtos_mais_vendidos
         .map(
           (produto, index) => `
@@ -697,35 +748,69 @@ async function gerarRelatorio() {
             `
         )
         .join("");
+    } else {
+      containerProdutos.innerHTML =
+        '<div class="empty-state">Nenhuma venda registrada</div>';
     }
 
-    // Despesas por categoria
+    // Despesas por categoria (apenas disponível no relatório diário)
     const containerCategorias = document.getElementById(
       "despesas-por-categoria"
     );
-    const categorias = Object.entries(dados.despesas_por_categoria);
-
-    if (categorias.length === 0) {
-      containerCategorias.innerHTML =
-        '<div class="empty-state">Nenhuma despesa registrada</div>';
+    
+    if (dados.despesas_por_categoria) {
+      const categorias = Object.entries(dados.despesas_por_categoria);
+      
+      if (categorias.length === 0) {
+        containerCategorias.innerHTML =
+          '<div class="empty-state">Nenhuma despesa registrada</div>';
+      } else {
+        containerCategorias.innerHTML = categorias
+          .map(
+            ([categoria, valor]) => `
+                  <div class="categoria-item">
+                      <div class="categoria-info">
+                          <strong>${categoria}</strong>
+                      </div>
+                      <div class="categoria-valor">R$ ${formatarMoeda(
+                        valor
+                      )}</div>
+                  </div>
+              `
+          )
+          .join("");
+      }
     } else {
-      containerCategorias.innerHTML = categorias
-        .map(
-          ([categoria, valor]) => `
-                <div class="categoria-item">
-                    <div class="categoria-info">
-                        <strong>${categoria}</strong>
-                    </div>
-                    <div class="categoria-valor">R$ ${formatarMoeda(
-                      valor
-                    )}</div>
-                </div>
-            `
-        )
-        .join("");
+      containerCategorias.innerHTML =
+        '<div class="empty-state">Detalhamento disponível apenas para relatórios de um único dia</div>';
     }
   } catch (error) {
     console.error("Erro ao gerar relatório:", error);
     mostrarToast("Erro ao gerar relatório", "error");
   }
 }
+// ==================== MODAL DE DESCRIÇÃO ====================
+
+function mostrarDescricao(nome, descricao) {
+  const modal = document.getElementById('modal-descricao');
+  const titulo = document.getElementById('modal-descricao-titulo');
+  const texto = document.getElementById('modal-descricao-texto');
+  
+  titulo.textContent = nome;
+  texto.textContent = descricao;
+  
+  modal.classList.add('show');
+}
+
+function fecharModalDescricao() {
+  const modal = document.getElementById('modal-descricao');
+  modal.classList.remove('show');
+}
+
+// Fechar modal ao clicar fora dele
+document.addEventListener('click', (e) => {
+  const modal = document.getElementById('modal-descricao');
+  if (e.target === modal) {
+    fecharModalDescricao();
+  }
+});

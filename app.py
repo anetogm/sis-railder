@@ -53,6 +53,20 @@ LANCHES = {
     '11-X-BACON EGG': 29.00
 }
 
+DESCRICOES_LANCHES = {
+    '01-X-FRANGO SIMPLES': 'Pão, molho especial, tomate, milho, batata palha, frango e queijo',
+    '02-X-FRANGO EGG': 'Pão, molho especial, tomate, milho, batata palha, frango, queijo e ovo',
+    '03-X-FRANGO SALADA': 'Pão, molho especial, alface, tomate, milho, frango e queijo',
+    '04-X-FRANGO CATUPIRY': 'Pão, molho especial, tomate, milho, batata palha, catupiry, frango e presunto',
+    '05-X-FRANGO TUDO': 'Pão, molho especial, alface, tomate, milho, batata palha, ovo, frango, bacon, presunto e queijo',
+    '06-X-SUPER PARADA': 'Pão, molho especial, alface, tomate, milho, batata palha, calabresa, frango, bacon, 2 ovos, 2 hambúrgueres, 2 presunto e 2 queijos',
+    '07-X-TUDO': 'Pão, molho especial, alface, tomate, milho, batata palha, ovo, hambúrguer, frango, bacon, presunto e queijo',
+    '08-X-TUDINHO': 'Pão, molho especial, alface, tomate, milho, batata palha, ovo, hambúrguer, frango, bacon, presunto e queijo (meia porção)',
+    '09-X-BACON': 'Pão, molho especial, tomate, batata palha, hambúrguer, bacon e queijo',
+    '10-X-BACON CEBOLA': 'Pão, molho especial, tomate, batata palha, hambúrguer, bacon, cebola e queijo',
+    '11-X-BACON EGG': 'Pão, molho especial, tomate, batata palha, hambúrguer, bacon, ovo e queijo'
+}
+
 LANCHES_GOURMET = {
     '12-CLÁSSICO': 28.00,
     '13-DELÍRIO': 31.00,
@@ -64,6 +78,19 @@ LANCHES_GOURMET = {
     '19-CHICAGO': 34.00,
     '20-TSUNAMI': 44.00,
     '21-FAVORITO': 31.00
+}
+
+DESCRICOES_LANCHES_GOURMET = {
+    '12-CLÁSSICO': 'Pão de brioche, hambúrguer 180g, molho especial e 2 fatias de queijo',
+    '13-DELÍRIO': 'Pão de brioche, hambúrguer 180g, catupiry, molho especial, bacon e queijo',
+    '14-MALVADO': 'Pão de brioche, hambúrguer 180g, bacon, cebola caramelizada e molho barbecue',
+    '15-DETROIT': 'Pão de brioche, hambúrguer 180g, molho especial, bacon, 2 fatias de queijo e cebola roxa',
+    '16-FRITZ': 'Pão de brioche, hambúrguer 180g, milho, batata palha, queijo, tomate e molho especial',
+    '17-PAMPA': 'Pão de brioche, hambúrguer 180g, milho, batata palha, queijo, tomate e molho especial',
+    '18-BORGUETINHO': 'Pão de brioche, hambúrguer 180g, molho especial, queijo, tomate e cebola',
+    '19-CHICAGO': 'Pão de brioche, hambúrguer 180g, queijo, cheddar cremoso, molho especial, bacon e queijo',
+    '20-TSUNAMI': 'Pão de brioche, 2 hambúrguer 180g, cheddar cremoso, queijo, bacon, cebola caramelizada e molho barbecue',
+    '21-FAVORITO': 'Pão de brioche, hambúrguer 180g, molho barbecue, bacon, queijo e cebola caramelizada'
 }
 
 PORCOES = {
@@ -115,7 +142,9 @@ def get_cardapio():
         'lanches': LANCHES,
         'lanches_gourmet': LANCHES_GOURMET,
         'porcoes': PORCOES,
-        'bebidas': BEBIDA
+        'bebidas': BEBIDA,
+        'descricoes_lanches': DESCRICOES_LANCHES,
+        'descricoes_lanches_gourmet': DESCRICOES_LANCHES_GOURMET
     })
 
 @app.get('/api/categorias-despesa')

@@ -344,6 +344,13 @@ body {
   min-height: 220px;
 }
 
+/* Quando o grid contém apenas empty-state */
+.produtos-grid:has(.empty-state:only-child) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .produto-card {
   background: var(--bg-light);
   border: 2px solid var(--border-color);
@@ -1083,15 +1090,20 @@ body {
 /* EMPTY STATE */
 .empty-state {
   text-align: center;
-  padding: 40px;
+  padding: 60px 40px;
   color: var(--secondary-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
 }
 
 .empty-state::before {
   content: "📭";
   display: block;
-  font-size: 3em;
-  margin-bottom: 15px;
+  font-size: 4em;
+  margin-bottom: 20px;
 }
 /* MODAL */
 .modal {

@@ -57,6 +57,13 @@ function configurarEventListeners() {
     dataFim.value = obterDataHoje();
     dataFim.addEventListener("change", gerarRelatorio);
   }
+
+  // Filtro automático do histórico
+  const filtroHistorico = document.getElementById("filtro-data-historico");
+  if (filtroHistorico) {
+    filtroHistorico.value = obterDataHoje();
+    filtroHistorico.addEventListener("change", aplicarFiltroHistorico);
+  }
 }
 
 // ==================== FUNÇÕES AUXILIARES ====================
@@ -133,7 +140,9 @@ function trocarTab(tabName) {
 
   // Carregar dados específicos da tab
   if (tabName === "historico") {
-    carregarHistorico();
+    const filtroData = document.getElementById("filtro-data-historico").value;
+    carregarHistorico(filtroData || obterDataHoje());
+    atualizarBotaoHistorico();
   } else if (tabName === "relatorios") {
     gerarRelatorio();
   }
@@ -994,14 +1003,39 @@ async function carregarHistorico(dataFiltro = null) {
 
 function aplicarFiltroHistorico() {
   const data = document.getElementById("filtro-data-historico").value;
+  atualizarBotaoHistorico();
   if (data) {
     carregarHistorico(data);
+  } else {
+    carregarHistorico();
   }
 }
 
-function limparFiltroHistorico() {
-  document.getElementById("filtro-data-historico").value = "";
-  carregarHistorico();
+function alternarFiltroHistorico() {
+  const filtroData = document.getElementById("filtro-data-historico");
+  
+  if (filtroData.value) {
+    // Se tem data, limpar e mostrar tudo
+    filtroData.value = "";
+    carregarHistorico();
+  } else {
+    // Se está vazio, mostrar hoje
+    filtroData.value = obterDataHoje();
+    carregarHistorico(obterDataHoje());
+  }
+  
+  atualizarBotaoHistorico();
+}
+
+function atualizarBotaoHistorico() {
+  const filtroData = document.getElementById("filtro-data-historico");
+  const botao = document.getElementById("btn-toggle-historico");
+  
+  if (filtroData.value) {
+    botao.textContent = "Mostrar Tudo";
+  } else {
+    botao.textContent = "Mostrar Hoje";
+  }
 }
 
 // ==================== RELATÓRIOS ====================

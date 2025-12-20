@@ -489,10 +489,10 @@ async function carregarVendasRecentes() {
       pedidos[pedidoId].total += parseFloat(venda.valor_total);
     });
 
-    // Ordenar pedidos por data/hora (mais recente primeiro)
-    const pedidosOrdenados = Object.values(pedidos).sort(
-      (a, b) => new Date(b.data_hora) - new Date(a.data_hora)
-    );
+    // Ordenar pedidos por data/hora (mais recente primeiro) e limitar a 5
+    const pedidosOrdenados = Object.values(pedidos)
+      .sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora))
+      .slice(0, 5);
 
     container.innerHTML = pedidosOrdenados
       .map((pedido) => {

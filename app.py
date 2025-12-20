@@ -20,7 +20,7 @@ db = SQLAlchemy(app)
 class Venda(db.Model):
     __tablename__ = 'vendas'
     id = db.Column(db.Integer, primary_key=True)
-    tipo = db.Column(db.String(20), nullable=False)  # 'lanche' ou 'bebida'
+    tipo = db.Column(db.String(20), nullable=False)  # 'lanche', 'bebida', 'lanche_gourmet' ou 'porcao'
     item = db.Column(db.String(100), nullable=False)
     quantidade = db.Column(db.Integer, nullable=False)
     valor_unitario = db.Column(db.Numeric(10, 2), nullable=False)
@@ -40,29 +40,52 @@ class Despesa(db.Model):
 # ==================== CARDÁPIO (DICIONÁRIOS) ====================
 
 LANCHES = {
-    'X-Burger': 15.00,
-    'X-Salada': 18.00,
-    'X-Bacon': 20.00,
-    'X-Tudo': 25.00,
-    'X-Egg': 17.00,
-    'X-Frango': 16.00,
-    'Hot Dog': 12.00,
-    'Cachorro Quente Especial': 15.00,
-    'Misto Quente': 8.00,
-    'Hambúrguer Simples': 10.00
+    '01-X-FRANGO SIMPLES': 23.00,
+    '02-X-FRANGO EGG': 27.00,
+    '03-X-FRANGO SALADA': 27.00,
+    '04-X-FRANGO CATUPIRY': 28.00,
+    '05-X-FRANGO TUDO': 28.00,
+    '06-X-SUPER PARADA': 43.00,
+    '07-X-TUDO': 34.00,
+    '08-X-TUDINHO': 28.00,
+    '09-X-BACON': 27.00,
+    '10-X-BACON CEBOLA': 28.00,
+    '11-X-BACON EGG': 29.00
 }
 
-BEBIDAS = {
-    'Coca-Cola 350ml': 5.00,
-    'Coca-Cola 600ml': 8.00,
-    'Coca-Cola 2L': 12.00,
-    'Guaraná 350ml': 4.50,
-    'Guaraná 2L': 10.00,
-    'Água 500ml': 3.00,
-    'Suco Natural': 7.00,
-    'Suco de Lata': 4.00,
-    'Cerveja': 6.00,
-    'Refrigerante Lata': 4.50
+LANCHES_GOURMET = {
+    '12-CLÁSSICO': 28.00,
+    '13-DELÍRIO': 31.00,
+    '14-MALVADO': 32.00,
+    '15-DETROIT': 33.00,
+    '16-FRITZ': 30.00,
+    '17-PAMPA': 32.00,
+    '18-BORGUETINHO': 31.00,
+    '19-CHICAGO': 34.00,
+    '20-TSUNAMI': 44.00,
+    '21-FAVORITO': 31.00
+}
+
+PORCOES = {
+    'PORÇÃO BATATA SIMPLES': 23.00,
+    'PORÇÃO BATATA QUEIJO/BACON': 28.00,
+    'PORÇÃO BATATA BACON/CHEDDAR': 30.00,
+    'PORÇÃO BATATA CHEDDAR': 25.00,
+    'PORÇÃO NUGGETS': 17.00,
+    'ANÉIS DE CEBOLA': 16.00
+}
+
+BEBIDA = {
+    'SUCO DEL VALLE': 8.00,
+    'REFRI 600ML': 8.00,
+    'REFRI 2L': 15.00,
+    'REFRI 1,5L': 10.00,
+    'REFRI LATA': 6.00,
+    'CERVEJA LATA': 7.00,
+    'ÁGUA': 3.00,
+    'ÁGUA C/ GÁS': 3.50,
+    'CERVEJA LONG': 12.00,
+    'CERVEJA CORONA': 12.00
 }
 
 CATEGORIAS_DESPESA = [
@@ -90,7 +113,9 @@ def index():
 def get_cardapio():
     return jsonify({
         'lanches': LANCHES,
-        'bebidas': BEBIDAS
+        'lanches_gourmet': LANCHES_GOURMET,
+        'porcoes': PORCOES,
+        'bebidas': BEBIDA
     })
 
 @app.get('/api/categorias-despesa')

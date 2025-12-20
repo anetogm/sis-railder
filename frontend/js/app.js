@@ -2,7 +2,7 @@
 const API_URL = "/api";
 
 // Estado da aplicação
-let cardapio = { lanches: {}, bebidas: {} };
+let cardapio = { lanches: {}, lanches_gourmet: {}, porcoes: {}, bebidas: {} };
 let categoriasDespesa = [];
 let produtoSelecionado = null;
 let categoriaSelecionada = null;
@@ -92,6 +92,16 @@ function formatarDataHora(dataHoraStr) {
   return data.toLocaleString("pt-BR");
 }
 
+function formatarTipoProduto(tipo) {
+  const tipos = {
+    lanche: "Lanche",
+    lanche_gourmet: "Lanche Gourmet",
+    porcao: "Porção",
+    bebida: "Bebida",
+  };
+  return tipos[tipo] || tipo.charAt(0).toUpperCase() + tipo.slice(1);
+}
+
 function mostrarToast(mensagem, tipo = "success") {
   const toast = document.getElementById("toast");
   toast.textContent = mensagem;
@@ -165,7 +175,23 @@ function mostrarProdutos(tipo) {
   const grid = document.getElementById("produtos-grid");
   grid.innerHTML = "";
 
-  const produtos = tipo === "lanche" ? cardapio.lanches : cardapio.bebidas;
+  let produtos;
+  switch (tipo) {
+    case "lanche":
+      produtos = cardapio.lanches;
+      break;
+    case "lanche_gourmet":
+      produtos = cardapio.lanches_gourmet;
+      break;
+    case "porcao":
+      produtos = cardapio.porcoes;
+      break;
+    case "bebida":
+      produtos = cardapio.bebidas;
+      break;
+    default:
+      produtos = {};
+  }
 
   Object.entries(produtos).forEach(([nome, preco]) => {
     const card = document.createElement("div");
@@ -291,7 +317,9 @@ async function carregarVendasRecentes() {
                 <div class="item-info">
                     <strong>${venda.item}</strong>
                     <div class="detalhes">
-                        ${venda.quantidade}x - ${venda.tipo.charAt(0).toUpperCase() + venda.tipo.slice(1)}
+                        ${venda.quantidade}x - ${formatarTipoProduto(
+          venda.tipo
+        )}
                         - ${formatarDataHora(venda.data_hora)}
                     </div>
                 </div>
@@ -333,9 +361,10 @@ async function deletarVenda(id) {
 
 function mostrarCategorias() {
   const grid = document.getElementById("categorias-grid");
-  
+
   if (!categoriasDespesa || categoriasDespesa.length === 0) {
-    grid.innerHTML = '<div class="empty-state">Nenhuma categoria disponível</div>';
+    grid.innerHTML =
+      '<div class="empty-state">Nenhuma categoria disponível</div>';
     return;
   }
 
@@ -354,9 +383,11 @@ function selecionarCategoria(categoria) {
   categoriaSelecionada = categoria;
 
   // Remover seleção anterior
-  document.querySelectorAll("#categorias-grid .produto-card").forEach((card) => {
-    card.classList.remove("selecionado");
-  });
+  document
+    .querySelectorAll("#categorias-grid .produto-card")
+    .forEach((card) => {
+      card.classList.remove("selecionado");
+    });
 
   // Marcar categoria selecionada
   event.currentTarget.classList.add("selecionado");
@@ -375,9 +406,11 @@ function cancelarDespesa() {
   document.getElementById("form-despesa").reset();
 
   // Remover seleção
-  document.querySelectorAll("#categorias-grid .produto-card").forEach((card) => {
-    card.classList.remove("selecionado");
-  });
+  document
+    .querySelectorAll("#categorias-grid .produto-card")
+    .forEach((card) => {
+      card.classList.remove("selecionado");
+    });
 }
 
 async function registrarDespesa(e) {
@@ -652,7 +685,9 @@ async function gerarRelatorio() {
                     <div class="produto-info">
                         <strong>${index + 1}. ${produto.item}</strong>
                         <div class="detalhes">
-                            ${produto.quantidade} unidades - ${produto.tipo.charAt(0).toUpperCase() + produto.tipo.slice(1)}
+                            ${
+                              produto.quantidade
+                            } unidades - ${formatarTipoProduto(produto.tipo)}
                         </div>
                     </div>
                     <div class="produto-valor">R$ ${formatarMoeda(

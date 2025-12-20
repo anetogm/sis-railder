@@ -264,21 +264,38 @@ def relatorio_diario():
     despesas = Despesa.query.filter_by(data=data_obj).all()
     total_despesas = sum(float(d.valor) for d in despesas)
     
-    # Produtos mais vendidos
-    produtos_vendidos = {}
+    # Produtos mais vendidos - separados por categoria
+    produtos_vendidos_lanches = {}
+    produtos_vendidos_bebidas = {}
+    produtos_vendidos_porcoes = {}
+    
     for venda in vendas:
         key = f"{venda.tipo}:{venda.item}"
-        if key not in produtos_vendidos:
-            produtos_vendidos[key] = {
+        
+        # Determinar qual categoria (lanches inclui lanche e lanche_gourmet)
+        if venda.tipo in ['lanche', 'lanche_gourmet']:
+            produtos_dict = produtos_vendidos_lanches
+        elif venda.tipo == 'bebida':
+            produtos_dict = produtos_vendidos_bebidas
+        elif venda.tipo == 'porcao':
+            produtos_dict = produtos_vendidos_porcoes
+        else:
+            continue
+        
+        if key not in produtos_dict:
+            produtos_dict[key] = {
                 'tipo': venda.tipo,
                 'item': venda.item,
                 'quantidade': 0,
                 'total': 0
             }
-        produtos_vendidos[key]['quantidade'] += venda.quantidade
-        produtos_vendidos[key]['total'] += float(venda.valor_total)
+        produtos_dict[key]['quantidade'] += venda.quantidade
+        produtos_dict[key]['total'] += float(venda.valor_total)
     
-    produtos_ranking = sorted(produtos_vendidos.values(), key=lambda x: x['quantidade'], reverse=True)
+    # Ordenar cada categoria por quantidade
+    lanches_ranking = sorted(produtos_vendidos_lanches.values(), key=lambda x: x['quantidade'], reverse=True)[:5]
+    bebidas_ranking = sorted(produtos_vendidos_bebidas.values(), key=lambda x: x['quantidade'], reverse=True)[:5]
+    porcoes_ranking = sorted(produtos_vendidos_porcoes.values(), key=lambda x: x['quantidade'], reverse=True)[:5]
     
     # Despesas por categoria
     despesas_por_categoria = {}
@@ -294,7 +311,9 @@ def relatorio_diario():
         'lucro': total_vendas - total_despesas,
         'quantidade_vendas': len(vendas),
         'quantidade_despesas': len(despesas),
-        'produtos_mais_vendidos': produtos_ranking[:5],
+        'lanches_mais_vendidos': lanches_ranking,
+        'bebidas_mais_vendidas': bebidas_ranking,
+        'porcoes_mais_vendidas': porcoes_ranking,
         'despesas_por_categoria': despesas_por_categoria
     })
 

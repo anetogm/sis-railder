@@ -54,12 +54,12 @@ function configurarEventListeners() {
   // Datas do relatório - geração automática
   const dataInicio = document.getElementById("data-inicio-relatorio");
   const dataFim = document.getElementById("data-fim-relatorio");
-  
+
   if (dataInicio) {
     dataInicio.value = obterDataHoje();
     dataInicio.addEventListener("change", gerarRelatorio);
   }
-  
+
   if (dataFim) {
     dataFim.value = obterDataHoje();
     dataFim.addEventListener("change", gerarRelatorio);
@@ -152,19 +152,19 @@ async function carregarCardapio() {
   try {
     const response = await fetch(`${API_URL}/cardapio`);
     const dados = await response.json();
-    
+
     cardapio = {
       lanches: dados.lanches,
       lanches_gourmet: dados.lanches_gourmet,
       porcoes: dados.porcoes,
-      bebidas: dados.bebidas
+      bebidas: dados.bebidas,
     };
-    
+
     descricoes = {
       lanches: dados.descricoes_lanches || {},
-      lanches_gourmet: dados.descricoes_lanches_gourmet || {}
+      lanches_gourmet: dados.descricoes_lanches_gourmet || {},
     };
-    
+
     console.log("Cardápio carregado:", cardapio);
   } catch (error) {
     console.error("Erro ao carregar cardápio:", error);
@@ -220,23 +220,27 @@ function mostrarProdutos(tipo) {
   Object.entries(produtos).forEach(([nome, preco]) => {
     const card = document.createElement("div");
     card.className = "produto-card";
-    
+
     // Verificar se há descrição para este produto
-    const temDescricao = (tipo === 'lanche' && descricoes.lanches[nome]) || 
-                         (tipo === 'lanche_gourmet' && descricoes.lanches_gourmet[nome]);
-    
+    const temDescricao =
+      (tipo === "lanche" && descricoes.lanches[nome]) ||
+      (tipo === "lanche_gourmet" && descricoes.lanches_gourmet[nome]);
+
     card.innerHTML = `
-      ${temDescricao ? '<div class="info-icon"></div>' : ''}
+      ${temDescricao ? '<div class="info-icon"></div>' : ""}
       <h4>${nome}</h4>
       <div class="preco">R$ ${formatarMoeda(preco)}</div>
     `;
 
     // Event listener para o ícone de informações
     if (temDescricao) {
-      const infoIcon = card.querySelector('.info-icon');
-      infoIcon.addEventListener('click', (e) => {
+      const infoIcon = card.querySelector(".info-icon");
+      infoIcon.addEventListener("click", (e) => {
         e.stopPropagation(); // Evita selecionar o produto ao clicar no ícone
-        const descricao = tipo === 'lanche' ? descricoes.lanches[nome] : descricoes.lanches_gourmet[nome];
+        const descricao =
+          tipo === "lanche"
+            ? descricoes.lanches[nome]
+            : descricoes.lanches_gourmet[nome];
         mostrarDescricao(nome, descricao);
       });
     }
@@ -692,13 +696,15 @@ async function gerarRelatorio() {
     // Se for o mesmo dia, usa o endpoint diário
     let response;
     let dados;
-    
+
     if (dataInicio === dataFim) {
       response = await fetch(`${API_URL}/relatorio/diario?data=${dataInicio}`);
       dados = await response.json();
     } else {
       // Usa o endpoint de período
-      response = await fetch(`${API_URL}/relatorio/periodo?data_inicio=${dataInicio}&data_fim=${dataFim}`);
+      response = await fetch(
+        `${API_URL}/relatorio/periodo?data_inicio=${dataInicio}&data_fim=${dataFim}`
+      );
       dados = await response.json();
     }
 
@@ -726,41 +732,68 @@ async function gerarRelatorio() {
       lucroContainer.classList.remove("negativo");
     }
 
-    // Produtos mais vendidos (apenas disponível no relatório diário)
+    // Produtos mais vendidos - renderizar todas as categorias em uma seção
     const containerProdutos = document.getElementById("produtos-mais-vendidos");
-    if (dados.produtos_mais_vendidos && dados.produtos_mais_vendidos.length > 0) {
-      containerProdutos.innerHTML = dados.produtos_mais_vendidos
-        .map(
-          (produto, index) => `
-                <div class="produto-item">
-                    <div class="produto-info">
-                        <strong>${index + 1}. ${produto.item}</strong>
-                        <div class="detalhes">
-                            ${
-                              produto.quantidade
-                            } unidades - ${formatarTipoProduto(produto.tipo)}
-                        </div>
-                    </div>
-                    <div class="produto-valor">R$ ${formatarMoeda(
-                      produto.total
-                    )}</div>
-                </div>
-            `
-        )
-        .join("");
+    
+    if (dataInicio === dataFim) {
+      let htmlProdutos = '';
+      
+      // Lanches
+      if (dados.lanches_mais_vendidos && dados.lanches_mais_vendidos.length > 0) {
+        htmlProdutos += '<h4 class="categoria-titulo">🍔 Lanches</h4>';
+        dados.lanches_mais_vendidos.forEach(produto => {
+          htmlProdutos += `
+            <div class="produto-item">
+              <div class="produto-nome">${produto.item}</div>
+              <div class="produto-quantidade">${produto.quantidade} unidades</div>
+              <div class="produto-valor">R$ ${formatarMoeda(produto.total)}</div>
+            </div>
+          `;
+        });
+      }
+      
+      // Bebidas
+      if (dados.bebidas_mais_vendidas && dados.bebidas_mais_vendidas.length > 0) {
+        htmlProdutos += '<h4 class="categoria-titulo">🥤 Bebidas</h4>';
+        dados.bebidas_mais_vendidas.forEach(produto => {
+          htmlProdutos += `
+            <div class="produto-item">
+              <div class="produto-nome">${produto.item}</div>
+              <div class="produto-quantidade">${produto.quantidade} unidades</div>
+              <div class="produto-valor">R$ ${formatarMoeda(produto.total)}</div>
+            </div>
+          `;
+        });
+      }
+      
+      // Porções
+      if (dados.porcoes_mais_vendidas && dados.porcoes_mais_vendidas.length > 0) {
+        htmlProdutos += '<h4 class="categoria-titulo">🍟 Porções</h4>';
+        dados.porcoes_mais_vendidas.forEach(produto => {
+          htmlProdutos += `
+            <div class="produto-item">
+              <div class="produto-nome">${produto.item}</div>
+              <div class="produto-quantidade">${produto.quantidade} unidades</div>
+              <div class="produto-valor">R$ ${formatarMoeda(produto.total)}</div>
+            </div>
+          `;
+        });
+      }
+      
+      containerProdutos.innerHTML = htmlProdutos || '<div class="empty-state">Nenhuma venda registrada</div>';
     } else {
-      containerProdutos.innerHTML =
-        '<div class="empty-state">Nenhuma venda registrada</div>';
+      containerProdutos.innerHTML = 
+        '<div class="empty-state">Detalhamento disponível apenas para relatórios de um único dia</div>';
     }
 
     // Despesas por categoria (apenas disponível no relatório diário)
     const containerCategorias = document.getElementById(
       "despesas-por-categoria"
     );
-    
+
     if (dados.despesas_por_categoria) {
       const categorias = Object.entries(dados.despesas_por_categoria);
-      
+
       if (categorias.length === 0) {
         containerCategorias.innerHTML =
           '<div class="empty-state">Nenhuma despesa registrada</div>';
@@ -792,24 +825,24 @@ async function gerarRelatorio() {
 // ==================== MODAL DE DESCRIÇÃO ====================
 
 function mostrarDescricao(nome, descricao) {
-  const modal = document.getElementById('modal-descricao');
-  const titulo = document.getElementById('modal-descricao-titulo');
-  const texto = document.getElementById('modal-descricao-texto');
-  
+  const modal = document.getElementById("modal-descricao");
+  const titulo = document.getElementById("modal-descricao-titulo");
+  const texto = document.getElementById("modal-descricao-texto");
+
   titulo.textContent = nome;
   texto.textContent = descricao;
-  
-  modal.classList.add('show');
+
+  modal.classList.add("show");
 }
 
 function fecharModalDescricao() {
-  const modal = document.getElementById('modal-descricao');
-  modal.classList.remove('show');
+  const modal = document.getElementById("modal-descricao");
+  modal.classList.remove("show");
 }
 
 // Fechar modal ao clicar fora dele
-document.addEventListener('click', (e) => {
-  const modal = document.getElementById('modal-descricao');
+document.addEventListener("click", (e) => {
+  const modal = document.getElementById("modal-descricao");
   if (e.target === modal) {
     fecharModalDescricao();
   }

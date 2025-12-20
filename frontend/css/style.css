@@ -531,11 +531,14 @@ body {
 .btn-secondary {
   background: var(--secondary-color);
   color: white;
+  padding: 10px 18px;
+  font-size: 0.9em;
+  border-radius: 8px;
 }
 
 .btn-secondary:hover {
   background: #475569;
-  transform: translateY(-2px);
+  transform: scale(1.05);
   box-shadow: var(--shadow-md);
 }
 
@@ -660,13 +663,21 @@ body {
 .pedido-acoes {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
+}
+
+.pedido-acoes .btn {
+  padding: 10px 18px;
+  font-size: 0.9em;
+  border-radius: 8px;
+  white-space: nowrap;
 }
 
 .pedido-total {
   font-size: 1.4em;
   font-weight: 700;
   color: var(--success-color);
+  margin-right: 8px;
 }
 
 .pedido-itens {
@@ -1101,15 +1112,94 @@ body {
   justify-content: center;
 }
 
+/* MODAL OVERLAY */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .modal-content {
   background-color: var(--card-bg);
-  padding: 30px;
+  padding: 0;
   border-radius: 16px;
-  max-width: 500px;
+  max-width: 600px;
   width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
   position: relative;
   box-shadow: var(--shadow-xl);
   animation: slideUp 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 20px 30px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--primary-gradient);
+  color: white;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.4em;
+  color: white;
+}
+
+.close-modal {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: white;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.close-modal:hover {
+  transform: scale(1.2);
+}
+
+.modal-body {
+  padding: 30px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 20px 30px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: var(--bg-light);
 }
 
 @keyframes slideUp {

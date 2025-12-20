@@ -528,6 +528,9 @@ async function carregarVendasRecentes() {
                 <div class="pedido-total">R$ ${formatarMoeda(
                   pedido.total
                 )}</div>
+                <button class="btn btn-secondary" onclick="editarPedido('${
+                  pedido.id
+                }')" style="margin-right: 8px;">Editar</button>
                 <button class="btn btn-danger" onclick="deletarPedido('${
                   pedido.id
                 }')">Excluir</button>
@@ -540,8 +543,136 @@ async function carregarVendasRecentes() {
         `;
       })
       .join("");
+
+    // Adicionar event listeners para os botões usando delegação
+    setTimeout(() => {
+      document.querySelectorAll(".btn-editar-pedido").forEach((btn) => {
+        btn.addEventListener("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          editarPedido(this.dataset.pedidoId);
+        });
+      });
+
+      document.querySelectorAll(".btn-deletar-pedido").forEach((btn) => {
+        btn.addEventListener("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          deletarPedido(this.dataset.pedidoId);
+        });
+      });
+    }, 0);
   } catch (error) {
     console.error("Erro ao carregar vendas:", error);
+  }
+}
+
+async function editarPedido(pedidoId) {
+  try {
+    // Buscar todas as vendas do pedido
+    const response = await fetch(`${API_URL}/vendas?data=${obterDataHoje()}`);
+    const vendas = await response.json();
+
+    const vendasDoPedido = vendas.filter(
+      (v) => v.pedido_id === pedidoId || `single-${v.id}` === pedidoId
+    );
+
+    if (vendasDoPedido.length === 0) return;
+
+    // Criar modal de edição
+    let modalHtml = `
+      <div class="modal-overlay" id="modal-editar-pedido">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Editar Pedido</h3>
+            <button class="close-modal" onclick="fecharModalEdicao()">&times;</button>
+          </div>
+          <div class="modal-body">
+    `;
+
+    vendasDoPedido.forEach((venda) => {
+      modalHtml += `
+        <div class="form-group" style="margin-bottom: 20px; padding: 15px; border: 1px solid var(--border-color); border-radius: 8px;">
+          <h4 style="margin-bottom: 10px;">${
+            venda.item
+          } - ${formatarTipoProduto(venda.tipo)}</h4>
+          <div style="display: grid; gap: 10px;">
+            <div>
+              <label>Quantidade:</label>
+              <input type="number" id="qty-${venda.id}" value="${
+        venda.quantidade
+      }" min="1" class="input" style="width: 100%;">
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
+              <span style="color: var(--text-muted);">Valor Unitário:</span>
+              <span style="font-weight: 600; color: var(--text-color);">R$ ${formatarMoeda(
+                venda.valor_unitario
+              )}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid var(--border-color);">
+              <span style="color: var(--text-muted);">Subtotal:</span>
+              <span style="font-weight: 700; color: var(--success-color); font-size: 1.1em;">R$ ${formatarMoeda(
+                venda.valor_total
+              )}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    modalHtml += `
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="fecharModalEdicao()">Cancelar</button>
+            <button class="btn btn-primary" onclick="salvarEdicaoPedido(${JSON.stringify(
+              vendasDoPedido.map((v) => v.id)
+            )})">Salvar</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Adicionar modal ao body
+    const modalContainer = document.createElement("div");
+    modalContainer.innerHTML = modalHtml;
+    document.body.appendChild(modalContainer);
+  } catch (error) {
+    console.error("Erro ao editar pedido:", error);
+    mostrarToast("Erro ao abrir edição", "error");
+  }
+}
+
+function fecharModalEdicao() {
+  const modal = document.getElementById("modal-editar-pedido");
+  if (modal) {
+    modal.parentElement.remove();
+  }
+}
+
+async function salvarEdicaoPedido(vendaIds) {
+  try {
+    // Atualizar cada venda
+    for (const id of vendaIds) {
+      const quantidade = parseInt(document.getElementById(`qty-${id}`).value);
+
+      await fetch(`${API_URL}/vendas/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          quantidade,
+        }),
+      });
+    }
+
+    fecharModalEdicao();
+    mostrarToast("Pedido atualizado com sucesso!");
+    await atualizarDashboard();
+    await carregarVendasRecentes();
+  } catch (error) {
+    console.error("Erro ao salvar edição:", error);
+    mostrarToast("Erro ao salvar alterações", "error");
   }
 }
 
@@ -925,75 +1056,53 @@ async function gerarRelatorio() {
 
     // Produtos mais vendidos - renderizar todas as categorias em uma seção
     const containerProdutos = document.getElementById("produtos-mais-vendidos");
-    
+
     let htmlProdutos = "";
 
     // Lanches
-    if (
-      dados.lanches_mais_vendidos &&
-      dados.lanches_mais_vendidos.length > 0
-    ) {
+    if (dados.lanches_mais_vendidos && dados.lanches_mais_vendidos.length > 0) {
       htmlProdutos += '<h4 class="categoria-titulo">🍔 Lanches</h4>';
       dados.lanches_mais_vendidos.forEach((produto) => {
         htmlProdutos += `
           <div class="produto-item">
             <div class="produto-nome">${produto.item}</div>
-            <div class="produto-quantidade">${
-              produto.quantidade
-            } unidades</div>
-            <div class="produto-valor">R$ ${formatarMoeda(
-              produto.total
-            )}</div>
+            <div class="produto-quantidade">${produto.quantidade} unidades</div>
+            <div class="produto-valor">R$ ${formatarMoeda(produto.total)}</div>
           </div>
         `;
       });
     }
 
     // Bebidas
-    if (
-      dados.bebidas_mais_vendidas &&
-      dados.bebidas_mais_vendidas.length > 0
-    ) {
+    if (dados.bebidas_mais_vendidas && dados.bebidas_mais_vendidas.length > 0) {
       htmlProdutos += '<h4 class="categoria-titulo">🥤 Bebidas</h4>';
       dados.bebidas_mais_vendidas.forEach((produto) => {
         htmlProdutos += `
           <div class="produto-item">
             <div class="produto-nome">${produto.item}</div>
-            <div class="produto-quantidade">${
-              produto.quantidade
-            } unidades</div>
-            <div class="produto-valor">R$ ${formatarMoeda(
-              produto.total
-            )}</div>
+            <div class="produto-quantidade">${produto.quantidade} unidades</div>
+            <div class="produto-valor">R$ ${formatarMoeda(produto.total)}</div>
           </div>
         `;
       });
     }
 
     // Porções
-    if (
-      dados.porcoes_mais_vendidas &&
-      dados.porcoes_mais_vendidas.length > 0
-    ) {
+    if (dados.porcoes_mais_vendidas && dados.porcoes_mais_vendidas.length > 0) {
       htmlProdutos += '<h4 class="categoria-titulo">🍟 Porções</h4>';
       dados.porcoes_mais_vendidas.forEach((produto) => {
         htmlProdutos += `
           <div class="produto-item">
             <div class="produto-nome">${produto.item}</div>
-            <div class="produto-quantidade">${
-              produto.quantidade
-            } unidades</div>
-            <div class="produto-valor">R$ ${formatarMoeda(
-              produto.total
-            )}</div>
+            <div class="produto-quantidade">${produto.quantidade} unidades</div>
+            <div class="produto-valor">R$ ${formatarMoeda(produto.total)}</div>
           </div>
         `;
       });
     }
 
     containerProdutos.innerHTML =
-      htmlProdutos ||
-      '<div class="empty-state">Nenhuma venda registrada</div>';
+      htmlProdutos || '<div class="empty-state">Nenhuma venda registrada</div>';
 
     // Despesas por categoria (apenas disponível no relatório diário)
     const containerCategorias = document.getElementById(

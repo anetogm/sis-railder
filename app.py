@@ -198,6 +198,33 @@ def listar_vendas():
         'data_hora': v.data_hora.isoformat()
     } for v in vendas])
 
+@app.put('/api/vendas/<int:id>')
+def atualizar_venda(id):
+    venda = Venda.query.get_or_404(id)
+    data = request.json
+    
+    venda.quantidade = data.get('quantidade', venda.quantidade)
+    venda.valor_unitario = data.get('valor_unitario', venda.valor_unitario)
+    venda.valor_total = Decimal(str(venda.quantidade)) * Decimal(str(venda.valor_unitario))
+    
+    db.session.commit()
+    
+    return jsonify({
+        'id': venda.id,
+        'message': 'Venda atualizada com sucesso!',
+        'venda': {
+            'id': venda.id,
+            'pedido_id': venda.pedido_id,
+            'tipo': venda.tipo,
+            'item': venda.item,
+            'quantidade': venda.quantidade,
+            'valor_unitario': float(venda.valor_unitario),
+            'valor_total': float(venda.valor_total),
+            'data': venda.data.isoformat(),
+            'data_hora': venda.data_hora.isoformat()
+        }
+    })
+
 @app.delete('/api/vendas/<int:id>')
 def deletar_venda(id):
     venda = Venda.query.get_or_404(id)

@@ -323,9 +323,9 @@ def relatorio_diario():
         produtos_dict[key]['total'] += float(venda.valor_total)
     
     # Ordenar cada categoria por quantidade
-    lanches_ranking = sorted(produtos_vendidos_lanches.values(), key=lambda x: x['quantidade'], reverse=True)[:5]
-    bebidas_ranking = sorted(produtos_vendidos_bebidas.values(), key=lambda x: x['quantidade'], reverse=True)[:5]
-    porcoes_ranking = sorted(produtos_vendidos_porcoes.values(), key=lambda x: x['quantidade'], reverse=True)[:5]
+    lanches_ranking = sorted(produtos_vendidos_lanches.values(), key=lambda x: x['quantidade'], reverse=True)[:3]
+    bebidas_ranking = sorted(produtos_vendidos_bebidas.values(), key=lambda x: x['quantidade'], reverse=True)[:3]
+    porcoes_ranking = sorted(produtos_vendidos_porcoes.values(), key=lambda x: x['quantidade'], reverse=True)[:3]
     
     # Despesas por categoria
     despesas_por_categoria = {}

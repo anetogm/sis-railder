@@ -925,80 +925,75 @@ async function gerarRelatorio() {
 
     // Produtos mais vendidos - renderizar todas as categorias em uma seção
     const containerProdutos = document.getElementById("produtos-mais-vendidos");
+    
+    let htmlProdutos = "";
 
-    if (dataInicio === dataFim) {
-      let htmlProdutos = "";
-
-      // Lanches
-      if (
-        dados.lanches_mais_vendidos &&
-        dados.lanches_mais_vendidos.length > 0
-      ) {
-        htmlProdutos += '<h4 class="categoria-titulo">🍔 Lanches</h4>';
-        dados.lanches_mais_vendidos.forEach((produto) => {
-          htmlProdutos += `
-            <div class="produto-item">
-              <div class="produto-nome">${produto.item}</div>
-              <div class="produto-quantidade">${
-                produto.quantidade
-              } unidades</div>
-              <div class="produto-valor">R$ ${formatarMoeda(
-                produto.total
-              )}</div>
-            </div>
-          `;
-        });
-      }
-
-      // Bebidas
-      if (
-        dados.bebidas_mais_vendidas &&
-        dados.bebidas_mais_vendidas.length > 0
-      ) {
-        htmlProdutos += '<h4 class="categoria-titulo">🥤 Bebidas</h4>';
-        dados.bebidas_mais_vendidas.forEach((produto) => {
-          htmlProdutos += `
-            <div class="produto-item">
-              <div class="produto-nome">${produto.item}</div>
-              <div class="produto-quantidade">${
-                produto.quantidade
-              } unidades</div>
-              <div class="produto-valor">R$ ${formatarMoeda(
-                produto.total
-              )}</div>
-            </div>
-          `;
-        });
-      }
-
-      // Porções
-      if (
-        dados.porcoes_mais_vendidas &&
-        dados.porcoes_mais_vendidas.length > 0
-      ) {
-        htmlProdutos += '<h4 class="categoria-titulo">🍟 Porções</h4>';
-        dados.porcoes_mais_vendidas.forEach((produto) => {
-          htmlProdutos += `
-            <div class="produto-item">
-              <div class="produto-nome">${produto.item}</div>
-              <div class="produto-quantidade">${
-                produto.quantidade
-              } unidades</div>
-              <div class="produto-valor">R$ ${formatarMoeda(
-                produto.total
-              )}</div>
-            </div>
-          `;
-        });
-      }
-
-      containerProdutos.innerHTML =
-        htmlProdutos ||
-        '<div class="empty-state">Nenhuma venda registrada</div>';
-    } else {
-      containerProdutos.innerHTML =
-        '<div class="empty-state">Detalhamento disponível apenas para relatórios de um único dia</div>';
+    // Lanches
+    if (
+      dados.lanches_mais_vendidos &&
+      dados.lanches_mais_vendidos.length > 0
+    ) {
+      htmlProdutos += '<h4 class="categoria-titulo">🍔 Lanches</h4>';
+      dados.lanches_mais_vendidos.forEach((produto) => {
+        htmlProdutos += `
+          <div class="produto-item">
+            <div class="produto-nome">${produto.item}</div>
+            <div class="produto-quantidade">${
+              produto.quantidade
+            } unidades</div>
+            <div class="produto-valor">R$ ${formatarMoeda(
+              produto.total
+            )}</div>
+          </div>
+        `;
+      });
     }
+
+    // Bebidas
+    if (
+      dados.bebidas_mais_vendidas &&
+      dados.bebidas_mais_vendidas.length > 0
+    ) {
+      htmlProdutos += '<h4 class="categoria-titulo">🥤 Bebidas</h4>';
+      dados.bebidas_mais_vendidas.forEach((produto) => {
+        htmlProdutos += `
+          <div class="produto-item">
+            <div class="produto-nome">${produto.item}</div>
+            <div class="produto-quantidade">${
+              produto.quantidade
+            } unidades</div>
+            <div class="produto-valor">R$ ${formatarMoeda(
+              produto.total
+            )}</div>
+          </div>
+        `;
+      });
+    }
+
+    // Porções
+    if (
+      dados.porcoes_mais_vendidas &&
+      dados.porcoes_mais_vendidas.length > 0
+    ) {
+      htmlProdutos += '<h4 class="categoria-titulo">🍟 Porções</h4>';
+      dados.porcoes_mais_vendidas.forEach((produto) => {
+        htmlProdutos += `
+          <div class="produto-item">
+            <div class="produto-nome">${produto.item}</div>
+            <div class="produto-quantidade">${
+              produto.quantidade
+            } unidades</div>
+            <div class="produto-valor">R$ ${formatarMoeda(
+              produto.total
+            )}</div>
+          </div>
+        `;
+      });
+    }
+
+    containerProdutos.innerHTML =
+      htmlProdutos ||
+      '<div class="empty-state">Nenhuma venda registrada</div>';
 
     // Despesas por categoria (apenas disponível no relatório diário)
     const containerCategorias = document.getElementById(

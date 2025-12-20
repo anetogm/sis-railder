@@ -339,6 +339,46 @@ def relatorio_periodo():
     despesas = Despesa.query.filter(Despesa.data.between(data_inicio_obj, data_fim_obj)).all()
     total_despesas = sum(float(d.valor) for d in despesas)
     
+    # Produtos mais vendidos - separados por categoria
+    produtos_vendidos_lanches = {}
+    produtos_vendidos_bebidas = {}
+    produtos_vendidos_porcoes = {}
+    
+    for venda in vendas:
+        key = f"{venda.tipo}:{venda.item}"
+        
+        # Determinar qual categoria (lanches inclui lanche e lanche_gourmet)
+        if venda.tipo in ['lanche', 'lanche_gourmet']:
+            produtos_dict = produtos_vendidos_lanches
+        elif venda.tipo == 'bebida':
+            produtos_dict = produtos_vendidos_bebidas
+        elif venda.tipo == 'porcao':
+            produtos_dict = produtos_vendidos_porcoes
+        else:
+            continue
+        
+        if key not in produtos_dict:
+            produtos_dict[key] = {
+                'tipo': venda.tipo,
+                'item': venda.item,
+                'quantidade': 0,
+                'total': 0
+            }
+        produtos_dict[key]['quantidade'] += venda.quantidade
+        produtos_dict[key]['total'] += float(venda.valor_total)
+    
+    # Ordenar cada categoria por quantidade
+    lanches_ranking = sorted(produtos_vendidos_lanches.values(), key=lambda x: x['quantidade'], reverse=True)[:3]
+    bebidas_ranking = sorted(produtos_vendidos_bebidas.values(), key=lambda x: x['quantidade'], reverse=True)[:3]
+    porcoes_ranking = sorted(produtos_vendidos_porcoes.values(), key=lambda x: x['quantidade'], reverse=True)[:3]
+    
+    # Despesas por categoria
+    despesas_por_categoria = {}
+    for despesa in despesas:
+        if despesa.categoria not in despesas_por_categoria:
+            despesas_por_categoria[despesa.categoria] = 0
+        despesas_por_categoria[despesa.categoria] += float(despesa.valor)
+    
     return jsonify({
         'data_inicio': data_inicio,
         'data_fim': data_fim,
@@ -346,7 +386,11 @@ def relatorio_periodo():
         'total_despesas': total_despesas,
         'lucro': total_vendas - total_despesas,
         'quantidade_vendas': len(vendas),
-        'quantidade_despesas': len(despesas)
+        'quantidade_despesas': len(despesas),
+        'lanches_mais_vendidos': lanches_ranking,
+        'bebidas_mais_vendidas': bebidas_ranking,
+        'porcoes_mais_vendidas': porcoes_ranking,
+        'despesas_por_categoria': despesas_por_categoria
     })
 
 # ==================== INICIALIZAÇÃO ====================
